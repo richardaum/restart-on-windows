@@ -101,5 +101,3 @@ echo ""
 echo "If you want to reinstall, run:"
 echo "  curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash"
 echo ""
-
-
