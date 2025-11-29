@@ -1,0 +1,4 @@
+# Mock directories created during tests
+mocks/
+*.log
+

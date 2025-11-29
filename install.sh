@@ -47,10 +47,10 @@ mkdir -p "$INSTALL_DIR"
 echo "📦 Downloading files from ${BRANCH_OR_TAG}..."
 
 # Download all necessary files
-curl -fsSL "${BASE_URL}/restart-on-windows.sh" -o "${INSTALL_DIR}/restart-on-windows.sh"
-curl -fsSL "${BASE_URL}/setup-restart-on-windows-sudo.sh" -o "${INSTALL_DIR}/setup-restart-on-windows-sudo.sh"
-curl -fsSL "${BASE_URL}/restart-on-windows.desktop" -o "${INSTALL_DIR}/restart-on-windows.desktop"
-curl -fsSL "${BASE_URL}/quick-start.sh" -o "${INSTALL_DIR}/quick-start.sh"
+curl -fsSL "${BASE_URL}/src/restart-on-windows.sh" -o "${INSTALL_DIR}/restart-on-windows.sh"
+curl -fsSL "${BASE_URL}/src/setup-restart-on-windows-sudo.sh" -o "${INSTALL_DIR}/setup-restart-on-windows-sudo.sh"
+curl -fsSL "${BASE_URL}/src/restart-on-windows.desktop" -o "${INSTALL_DIR}/restart-on-windows.desktop"
+curl -fsSL "${BASE_URL}/src/quick-start.sh" -o "${INSTALL_DIR}/quick-start.sh"
 
 # Make scripts executable
 chmod +x "${INSTALL_DIR}/restart-on-windows.sh"
