@@ -72,3 +72,4 @@ Quick start:
 - `quick-start.sh` - Automated installation script
 - `install.sh` - One-command installation script
 - `scripts/install-hooks.sh` - Script to install git hooks for development
+
