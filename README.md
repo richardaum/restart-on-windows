@@ -28,20 +28,21 @@ After installation, you can use restart-on-windows from the launcher or terminal
 
 ## Manual Installation
 
-1. Copy the scripts to your local bin directory:
+1. Create symbolic links to the scripts in your local bin directory:
 
    ```bash
-   cp restart-on-windows.sh ~/.local/bin/
-   cp setup-restart-on-windows-sudo.sh ~/.local/bin/
-   chmod +x ~/.local/bin/restart-on-windows.sh
-   chmod +x ~/.local/bin/setup-restart-on-windows-sudo.sh
+   mkdir -p ~/.local/bin
+   ln -sf "$(pwd)/restart-on-windows.sh" ~/.local/bin/restart-on-windows.sh
+   ln -sf "$(pwd)/setup-restart-on-windows-sudo.sh" ~/.local/bin/setup-restart-on-windows-sudo.sh
+   chmod +x restart-on-windows.sh
+   chmod +x setup-restart-on-windows-sudo.sh
    ```
 
-2. Copy the desktop entry:
+2. Create a symbolic link to the desktop entry:
 
    ```bash
    mkdir -p ~/.local/share/applications
-   cp restart-on-windows.desktop ~/.local/share/applications/
+   ln -sf "$(pwd)/restart-on-windows.desktop" ~/.local/share/applications/restart-on-windows.desktop
    update-desktop-database ~/.local/share/applications
    ```
 
