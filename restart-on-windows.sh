@@ -3,12 +3,48 @@
 # Uses efibootmgr to set Windows Boot Manager as next boot
 #
 # BEHAVIOR: TEMPORARY (only for the next boot)
-# After restarting into Windows, the system returns to default order (Pop!_OS first)
+# After restarting into Windows, the system returns to default order (Linux first)
 # To make it permanent, use: --permanent or -p
 
-# Windows Boot Manager ID (Boot0001 according to efibootmgr)
-WINDOWS_BOOT_ID="0001"
-POPOS_BOOT_ID="0004"
+# Function to detect boot IDs automatically
+detect_boot_ids() {
+    if ! command -v efibootmgr &> /dev/null; then
+        return 1
+    fi
+    
+    # Get current boot entries
+    local boot_entries=$(efibootmgr 2>/dev/null)
+    
+    if [ -z "$boot_entries" ]; then
+        return 1
+    fi
+    
+    # Detect Windows Boot Manager
+    WINDOWS_BOOT_ID=$(echo "$boot_entries" | grep -i "Windows Boot Manager" | head -1 | sed -n 's/.*Boot\([0-9A-F]\{4\}\).*/\1/p')
+    
+    # Detect Linux boot entry
+    # First, try to find entries containing "Linux" or common distro names
+    LINUX_BOOT_ID=$(echo "$boot_entries" | grep -iE "(Linux|Ubuntu|Pop[!_ ]*OS|Debian|Fedora|Arch|openSUSE|Mint)" | grep -v "Windows" | head -1 | sed -n 's/.*Boot\([0-9A-F]\{4\}\).*/\1/p')
+    
+    # If not found, try to get the first non-Windows entry from boot order
+    if [ -z "$LINUX_BOOT_ID" ]; then
+        # Get current boot order
+        local boot_order=$(echo "$boot_entries" | grep "^BootOrder" | sed 's/.*: //' | cut -d',' -f1)
+        # Get all boot entries and find the first that's not Windows
+        LINUX_BOOT_ID=$(echo "$boot_entries" | grep "^Boot" | grep -v "Windows" | head -1 | sed -n 's/.*Boot\([0-9A-F]\{4\}\).*/\1/p')
+    fi
+    
+    # Fallback to manual values if detection fails
+    if [ -z "$WINDOWS_BOOT_ID" ]; then
+        WINDOWS_BOOT_ID="0001"
+        echo "⚠️  Could not detect Windows Boot ID, using default: Boot$WINDOWS_BOOT_ID" >&2
+    fi
+    
+    if [ -z "$LINUX_BOOT_ID" ]; then
+        LINUX_BOOT_ID="0004"
+        echo "⚠️  Could not detect Linux Boot ID, using default: Boot$LINUX_BOOT_ID" >&2
+    fi
+}
 
 # Check arguments
 PERMANENT=false
@@ -54,7 +90,7 @@ if [ "$EUID" -ne 0 ]; then
         exit $?
     else
         # Check if sudoers is configured
-        if sudo -l "$0" 2>/dev/null | grep -q "NOPASSWD.*restart-windows.sh"; then
+        if sudo -l "$0" 2>/dev/null | grep -q "NOPASSWD.*restart-on-windows.sh"; then
             # Sudoers configured but something went wrong, try again
             sudo "$0" "$@"
             exit $?
@@ -63,7 +99,7 @@ if [ "$EUID" -ne 0 ]; then
             echo "⚠️  This script requires administrator privileges."
             echo ""
             echo "💡 To avoid entering password every time, configure sudoers by running:"
-            echo "   bash ~/.local/bin/setup-restart-windows-sudo.sh"
+            echo "   bash ~/.local/bin/setup-restart-on-windows-sudo.sh"
             echo ""
             
             # Try to use pkexec in graphical environment (more user-friendly)
@@ -83,19 +119,28 @@ if [ "$EUID" -ne 0 ]; then
     fi
 fi
 
+# Detect boot IDs automatically (after root check)
+detect_boot_ids
+
+# Show detected boot IDs
+echo "🔍 Detected boot entries:"
+echo "   Windows Boot Manager: Boot$WINDOWS_BOOT_ID"
+echo "   Linux: Boot$LINUX_BOOT_ID"
+echo ""
+
 if [ "$PERMANENT" = true ]; then
-    # Change permanent order: Windows first, then Pop!_OS
+    # Change permanent order: Windows first, then Linux
     echo "📝 Configuring Windows as PERMANENT default boot..."
     echo "   Previous order: $(efibootmgr | grep BootOrder)"
-    efibootmgr -o "$WINDOWS_BOOT_ID,$POPOS_BOOT_ID,2001,0002,2002,2003"
+    efibootmgr -o "$WINDOWS_BOOT_ID,$LINUX_BOOT_ID,2001,0002,2002,2003"
     
     if [ $? -eq 0 ]; then
         echo "✅ Boot order changed permanently!"
         echo "   New order: $(efibootmgr | grep BootOrder)"
         echo ""
         echo "⚠️  WARNING: Windows will be the default boot until you change it manually."
-        echo "   To return to Pop!_OS as default, run:"
-        echo "   sudo efibootmgr -o $POPOS_BOOT_ID,$WINDOWS_BOOT_ID,2001,0002,2002,2003"
+        echo "   To return to Linux as default, run:"
+        echo "   sudo efibootmgr -o $LINUX_BOOT_ID,$WINDOWS_BOOT_ID,2001,0002,2002,2003"
         echo ""
     else
         echo "❌ Error configuring boot. Check permissions."
@@ -104,7 +149,7 @@ if [ "$PERMANENT" = true ]; then
 else
     # Set Windows only for next boot (TEMPORARY)
     echo "📝 Setting Windows Boot Manager (Boot$WINDOWS_BOOT_ID) as next boot..."
-    echo "   ⏱️  TEMPORARY: After restarting, returns to Pop!_OS as default"
+    echo "   ⏱️  TEMPORARY: After restarting, returns to Linux as default"
     efibootmgr -n "$WINDOWS_BOOT_ID"
     
     if [ $? -eq 0 ]; then

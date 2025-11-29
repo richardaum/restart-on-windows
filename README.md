@@ -4,9 +4,9 @@ Scripts to easily restart your system and boot into Windows on a dual-boot Pop!\
 
 ## Files
 
-- `restart-windows.sh` - Main script that configures boot and restarts into Windows
-- `setup-restart-windows-sudo.sh` - Setup script to configure sudoers (run once)
-- `restart-windows.desktop` - Desktop entry for the launcher
+- `restart-on-windows.sh` - Main script that configures boot and restarts into Windows
+- `setup-restart-on-windows-sudo.sh` - Setup script to configure sudoers (run once)
+- `restart-on-windows.desktop` - Desktop entry for the launcher
 - `quick-start.sh` - Automated installation script
 
 ## Quick Start
@@ -24,30 +24,30 @@ This will:
 - Configure sudoers (you'll be prompted for your password once)
 - Install `efibootmgr` if not already installed
 
-After installation, you can use restart-windows from the launcher or terminal.
+After installation, you can use restart-on-windows from the launcher or terminal.
 
 ## Manual Installation
 
 1. Copy the scripts to your local bin directory:
 
    ```bash
-   cp restart-windows.sh ~/.local/bin/
-   cp setup-restart-windows-sudo.sh ~/.local/bin/
-   chmod +x ~/.local/bin/restart-windows.sh
-   chmod +x ~/.local/bin/setup-restart-windows-sudo.sh
+   cp restart-on-windows.sh ~/.local/bin/
+   cp setup-restart-on-windows-sudo.sh ~/.local/bin/
+   chmod +x ~/.local/bin/restart-on-windows.sh
+   chmod +x ~/.local/bin/setup-restart-on-windows-sudo.sh
    ```
 
 2. Copy the desktop entry:
 
    ```bash
    mkdir -p ~/.local/share/applications
-   cp restart-windows.desktop ~/.local/share/applications/
+   cp restart-on-windows.desktop ~/.local/share/applications/
    update-desktop-database ~/.local/share/applications
    ```
 
 3. Configure sudoers (run once, requires password):
    ```bash
-   bash ~/.local/bin/setup-restart-windows-sudo.sh
+   bash ~/.local/bin/setup-restart-on-windows-sudo.sh
    ```
 
 ## Usage
@@ -60,16 +60,16 @@ Search for "Restart on Windows (Temporary)" in your application launcher.
 
 ```bash
 # Temporary boot (default - returns to Pop!_OS after restart)
-~/.local/bin/restart-windows.sh
+~/.local/bin/restart-on-windows.sh
 
 # Permanent boot order change (Windows first)
-~/.local/bin/restart-windows.sh --permanent
+~/.local/bin/restart-on-windows.sh --permanent
 
 # Configure boot only, don't restart
-~/.local/bin/restart-windows.sh --no-reboot
+~/.local/bin/restart-on-windows.sh --no-reboot
 
 # Show help
-~/.local/bin/restart-windows.sh --help
+~/.local/bin/restart-on-windows.sh --help
 ```
 
 ## Behavior

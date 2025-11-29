@@ -1,10 +1,10 @@
 #!/bin/bash
-# Quick Start script - Automated installation of restart-windows
+# Quick Start script - Automated installation of restart-on-windows
 # This script sets up everything automatically
 
 set -e  # Exit on error
 
-echo "🚀 Restart Windows - Quick Start Installation"
+echo "🚀 Restart on Windows - Quick Start Installation"
 echo "=============================================="
 echo ""
 
@@ -19,49 +19,49 @@ if ! command -v efibootmgr &> /dev/null; then
     echo ""
 fi
 
-# Step 1: Copy scripts to ~/.local/bin
-echo "📦 Step 1: Installing scripts to ~/.local/bin..."
+# Step 1: Create symbolic links to scripts in ~/.local/bin
+echo "📦 Step 1: Creating symbolic links to scripts in ~/.local/bin..."
 mkdir -p ~/.local/bin
 
-cp "$SCRIPT_DIR/restart-windows.sh" ~/.local/bin/
-cp "$SCRIPT_DIR/setup-restart-windows-sudo.sh" ~/.local/bin/
+ln -sf "$SCRIPT_DIR/restart-on-windows.sh" ~/.local/bin/restart-on-windows.sh
+ln -sf "$SCRIPT_DIR/setup-restart-on-windows-sudo.sh" ~/.local/bin/setup-restart-on-windows-sudo.sh
 
-chmod +x ~/.local/bin/restart-windows.sh
-chmod +x ~/.local/bin/setup-restart-windows-sudo.sh
+chmod +x "$SCRIPT_DIR/restart-on-windows.sh"
+chmod +x "$SCRIPT_DIR/setup-restart-on-windows-sudo.sh"
 
-echo "   ✅ Scripts installed"
+echo "   ✅ Symbolic links created"
 echo ""
 
-# Step 2: Install desktop entry
-echo "📦 Step 2: Installing desktop entry..."
+# Step 2: Install desktop entry (symbolic link)
+echo "📦 Step 2: Creating symbolic link to desktop entry..."
 mkdir -p ~/.local/share/applications
 
-cp "$SCRIPT_DIR/restart-windows.desktop" ~/.local/share/applications/
+ln -sf "$SCRIPT_DIR/restart-on-windows.desktop" ~/.local/share/applications/restart-on-windows.desktop
 update-desktop-database ~/.local/share/applications 2>/dev/null || true
 
-echo "   ✅ Desktop entry installed"
+echo "   ✅ Desktop entry link created"
 echo ""
 
 # Step 3: Configure sudoers
 echo "📦 Step 3: Configuring sudoers (requires password)..."
-echo "   This will allow running restart-windows.sh without password"
+echo "   This will allow running restart-on-windows.sh without password"
 echo ""
 
-bash ~/.local/bin/setup-restart-windows-sudo.sh
+bash ~/.local/bin/setup-restart-on-windows-sudo.sh
 
 echo ""
 echo "=============================================="
 echo "✅ Installation completed successfully!"
 echo ""
-echo "You can now use restart-windows in the following ways:"
+echo "You can now use restart-on-windows in the following ways:"
 echo ""
 echo "1. From Launcher:"
 echo "   Search for 'Restart on Windows (Temporary)'"
 echo ""
 echo "2. From Terminal:"
-echo "   ~/.local/bin/restart-windows.sh"
+echo "   ~/.local/bin/restart-on-windows.sh"
 echo ""
 echo "For more options, run:"
-echo "   ~/.local/bin/restart-windows.sh --help"
+echo "   ~/.local/bin/restart-on-windows.sh --help"
 echo ""
 
