@@ -6,6 +6,11 @@
 # After restarting into Windows, the system returns to default order (Linux first)
 # To make it permanent, use: --permanent or -p
 
+# Log script execution start (very early, before anything else)
+if command -v logger &> /dev/null; then
+    logger -t "restart-on-windows" "=== SCRIPT EXECUTED ==="
+fi
+
 # Function to show notification (useful when running from launcher)
 show_notification() {
     local title="$1"
@@ -85,6 +90,11 @@ for arg in "$@"; do
     esac
 done
 
+# Log script start
+if command -v logger &> /dev/null; then
+    logger -t "restart-on-windows" "Script started (EUID=$EUID, USER=$USER, DISPLAY=${DISPLAY:-not set})"
+fi
+
 echo "🪟 Configuring restart into Windows..."
 echo ""
 
@@ -97,9 +107,15 @@ fi
 
 # Check if running as root (required for efibootmgr)
 if [ "$EUID" -ne 0 ]; then 
+    if command -v logger &> /dev/null; then
+        logger -t "restart-on-windows" "Not running as root, attempting privilege escalation"
+    fi
     # Try to run with sudo without password (if configured via sudoers)
     if sudo -n "$0" "$@" 2>/dev/null; then
         # sudo -n works (no password configured)
+        if command -v logger &> /dev/null; then
+            logger -t "restart-on-windows" "Successfully escalated with sudo -n"
+        fi
         exit $?
     else
         # Check if sudoers is configured
@@ -119,6 +135,9 @@ if [ "$EUID" -ne 0 ]; then
             if [ -n "$DISPLAY" ] && command -v pkexec &> /dev/null; then
                 echo "   Opening authentication dialog..."
                 echo ""
+                if command -v logger &> /dev/null; then
+                    logger -t "restart-on-windows" "Attempting privilege escalation with pkexec"
+                fi
                 pkexec "$0" "$@"
                 exit $?
             else
@@ -133,6 +152,10 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Detect boot IDs automatically (after root check)
+if command -v logger &> /dev/null; then
+    logger -t "restart-on-windows" "Running as root, detecting boot IDs"
+fi
+
 detect_boot_ids
 
 # Show detected boot IDs
@@ -140,6 +163,10 @@ echo "🔍 Detected boot entries:"
 echo "   Windows Boot Manager: Boot$WINDOWS_BOOT_ID"
 echo "   Linux: Boot$LINUX_BOOT_ID"
 echo ""
+
+if command -v logger &> /dev/null; then
+    logger -t "restart-on-windows" "Boot IDs detected - Windows: $WINDOWS_BOOT_ID, Linux: $LINUX_BOOT_ID"
+fi
 
 if [ "$PERMANENT" = true ]; then
     # Change permanent order: Windows first, then Linux
@@ -167,6 +194,9 @@ else
     
     if [ $? -eq 0 ]; then
         echo "✅ Configuration successful (temporary)!"
+        if command -v logger &> /dev/null; then
+            logger -t "restart-on-windows" "Boot configuration successful (temporary)"
+        fi
         show_notification "Restart on Windows" "Boot configured successfully. Restarting in 5 seconds..." "normal"
         echo ""
     else
@@ -195,86 +225,47 @@ else
     echo -e "\r   Restarting now...                    "
     echo ""
     
-    # Ensure we're running as root for reboot
-    # If not root, try to execute reboot with sudo
-    if [ "$EUID" -ne 0 ]; then
-        # Try to reboot with sudo (may require password if sudoers not configured)
-        if sudo -n systemctl reboot 2>/dev/null; then
-            exit 0
-        elif sudo -n reboot 2>/dev/null; then
-            exit 0
-        elif sudo -n shutdown -r now 2>/dev/null; then
-            exit 0
-        else
-            # If sudo -n fails, try with password prompt (for graphical environments)
-            if [ -n "$DISPLAY" ] && command -v pkexec &> /dev/null; then
-                # Use pkexec to get root privileges for reboot
-                pkexec systemctl reboot 2>/dev/null || \
-                pkexec reboot 2>/dev/null || \
-                pkexec shutdown -r now 2>/dev/null || {
-                    echo "❌ Error: Could not restart the system automatically."
-                    echo "   Please restart manually."
-                    echo ""
-                    echo "✅ Boot has been configured for Windows on next restart."
-                    show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
-                    exit 1
-                }
-            else
-                # Fallback: try sudo with password prompt
-                sudo systemctl reboot 2>/dev/null || \
-                sudo reboot 2>/dev/null || \
-                sudo shutdown -r now 2>/dev/null || {
-                    echo "❌ Error: Could not restart the system automatically."
-                    echo "   Please restart manually."
-                    echo ""
-                    echo "✅ Boot has been configured for Windows on next restart."
-                    show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
-                    exit 1
-                }
-            fi
-        fi
-    else
-        # We're already root, try reboot commands directly
-        # Log to syslog for debugging when run from launcher
+    # Log reboot attempt (for debugging when run from launcher)
+    if command -v logger &> /dev/null; then
+        logger -t "restart-on-windows" "Attempting to reboot system (EUID=$EUID)"
+    fi
+    
+    # Check if systemctl reboot works
+    # Note: At this point, script should already be running as root (re-executed with sudo/pkexec earlier)
+    if ! systemctl reboot 2>&1; then
+        echo ""
+        echo "⚠️  systemctl reboot failed. Trying alternative method..."
         if command -v logger &> /dev/null; then
-            logger -t "restart-on-windows" "Attempting to reboot system (running as root, EUID=$EUID)"
+            logger -t "restart-on-windows" "systemctl reboot failed, trying alternatives"
         fi
         
-        if ! systemctl reboot 2>&1; then
-            echo ""
-            echo "⚠️  systemctl reboot failed. Trying alternative method..."
+        # Try alternative method
+        if command -v reboot &> /dev/null; then
+            echo "   Using 'reboot' command..."
             if command -v logger &> /dev/null; then
-                logger -t "restart-on-windows" "systemctl reboot failed, trying alternatives"
+                logger -t "restart-on-windows" "Using 'reboot' command"
             fi
-            
-            # Try alternative method
-            if command -v reboot &> /dev/null; then
-                echo "   Using 'reboot' command..."
-                if command -v logger &> /dev/null; then
-                    logger -t "restart-on-windows" "Using 'reboot' command"
-                fi
-                reboot
-            elif command -v shutdown &> /dev/null; then
-                echo "   Using 'shutdown -r now' command..."
-                if command -v logger &> /dev/null; then
-                    logger -t "restart-on-windows" "Using 'shutdown -r now' command"
-                fi
-                shutdown -r now
-            else
-                echo "❌ Error: Could not restart the system automatically."
-                echo "   Please restart manually."
-                echo ""
-                echo "✅ Boot has been configured for Windows on next restart."
-                if command -v logger &> /dev/null; then
-                    logger -t "restart-on-windows" "ERROR: Could not restart system - all methods failed"
-                fi
-                show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
-                exit 1
+            reboot
+        elif command -v shutdown &> /dev/null; then
+            echo "   Using 'shutdown -r now' command..."
+            if command -v logger &> /dev/null; then
+                logger -t "restart-on-windows" "Using 'shutdown -r now' command"
             fi
+            shutdown -r now
         else
+            echo "❌ Error: Could not restart the system automatically."
+            echo "   Please restart manually."
+            echo ""
+            echo "✅ Boot has been configured for Windows on next restart."
             if command -v logger &> /dev/null; then
-                logger -t "restart-on-windows" "systemctl reboot succeeded"
+                logger -t "restart-on-windows" "ERROR: Could not restart system - all methods failed"
             fi
+            show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
+            exit 1
+        fi
+    else
+        if command -v logger &> /dev/null; then
+            logger -t "restart-on-windows" "systemctl reboot succeeded"
         fi
     fi
 fi
