@@ -56,6 +56,15 @@ For more detailed information, see:
 - **[Boot IDs Configuration](docs/boot-ids.md)** - Configure custom boot IDs
 - **[Testing](docs/testing.md)** - Information about the test suite
 
+## Development
+
+For development setup, testing, and contribution guidelines, see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+
+Quick start:
+
+- Install git hooks: `bash scripts/install-hooks.sh`
+- Run tests: `bash tests/run_tests.sh`
+
 ## Files
 
 - `restart-on-windows.sh` - Main script that configures boot and restarts into Windows
@@ -63,3 +72,4 @@ For more detailed information, see:
 - `restart-on-windows.desktop` - Desktop entry for the launcher
 - `quick-start.sh` - Automated installation script
 - `install.sh` - One-command installation script
+- `scripts/install-hooks.sh` - Script to install git hooks for development

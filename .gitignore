@@ -13,3 +13,6 @@ Thumbs.db
 *.tmp
 *.log
 
+# Test mocks (temporary files created during tests)
+tests/mocks/bin/
+tests/mocks/tmp/

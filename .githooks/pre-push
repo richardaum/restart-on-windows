@@ -1,0 +1,33 @@
+#!/bin/bash
+# Pre-push hook: Run tests before allowing push
+
+# Get the repository root directory
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Change to repo root
+cd "$REPO_ROOT" || exit 1
+
+echo "🧪 Running tests before push..."
+echo ""
+
+# Run the test suite
+if [ -f "$REPO_ROOT/tests/run_tests.sh" ]; then
+    bash "$REPO_ROOT/tests/run_tests.sh"
+    TEST_EXIT_CODE=$?
+    
+    if [ $TEST_EXIT_CODE -ne 0 ]; then
+        echo ""
+        echo "❌ Tests failed! Push aborted."
+        echo "   Please fix the failing tests before pushing."
+        exit 1
+    else
+        echo ""
+        echo "✅ All tests passed! Proceeding with push..."
+        exit 0
+    fi
+else
+    echo "⚠️  Test script not found: $REPO_ROOT/tests/run_tests.sh"
+    echo "   Skipping tests..."
+    exit 0
+fi
+
