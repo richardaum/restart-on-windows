@@ -54,7 +54,7 @@ After installation, you can use restart-on-windows from the launcher or terminal
 
 ### From Launcher
 
-Search for "Restart on Windows (Temporary)" in your application launcher.
+Search for "Restart once on Windows" in your application launcher.
 
 ### From Terminal
 
