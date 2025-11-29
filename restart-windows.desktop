@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Restart on Windows (Temporary)
+Comment=Restart and boot into Windows once (returns to Pop!_OS next time)
+Exec=/home/richardaum/.local/bin/restart-windows.sh
+Icon=system-reboot
+Terminal=false
+Categories=System;
+Keywords=windows;boot;restart;dual;boot;temporary;
+StartupNotify=true
+
