@@ -6,6 +6,19 @@
 # After restarting into Windows, the system returns to default order (Linux first)
 # To make it permanent, use: --permanent or -p
 
+# Function to show notification (useful when running from launcher)
+show_notification() {
+    local title="$1"
+    local message="$2"
+    local urgency="${3:-normal}"
+    
+    if [ -n "$DISPLAY" ]; then
+        if command -v notify-send &> /dev/null; then
+            notify-send -u "$urgency" "$title" "$message" 2>/dev/null || true
+        fi
+    fi
+}
+
 # Function to detect boot IDs automatically
 detect_boot_ids() {
     if ! command -v efibootmgr &> /dev/null; then
@@ -154,9 +167,11 @@ else
     
     if [ $? -eq 0 ]; then
         echo "✅ Configuration successful (temporary)!"
+        show_notification "Restart on Windows" "Boot configured successfully. Restarting in 5 seconds..." "normal"
         echo ""
     else
         echo "❌ Error configuring boot. Check permissions."
+        show_notification "Restart on Windows" "Error: Could not configure boot. Check permissions." "critical"
         exit 1
     fi
 fi
@@ -180,24 +195,86 @@ else
     echo -e "\r   Restarting now...                    "
     echo ""
     
-    # Check if systemctl reboot works
-    if ! systemctl reboot 2>&1; then
-        echo ""
-        echo "⚠️  systemctl reboot failed. Trying alternative method..."
-        
-        # Try alternative method
-        if command -v reboot &> /dev/null; then
-            echo "   Using 'reboot' command..."
-            reboot
-        elif command -v shutdown &> /dev/null; then
-            echo "   Using 'shutdown -r now' command..."
-            shutdown -r now
+    # Ensure we're running as root for reboot
+    # If not root, try to execute reboot with sudo
+    if [ "$EUID" -ne 0 ]; then
+        # Try to reboot with sudo (may require password if sudoers not configured)
+        if sudo -n systemctl reboot 2>/dev/null; then
+            exit 0
+        elif sudo -n reboot 2>/dev/null; then
+            exit 0
+        elif sudo -n shutdown -r now 2>/dev/null; then
+            exit 0
         else
-            echo "❌ Error: Could not restart the system automatically."
-            echo "   Please restart manually."
+            # If sudo -n fails, try with password prompt (for graphical environments)
+            if [ -n "$DISPLAY" ] && command -v pkexec &> /dev/null; then
+                # Use pkexec to get root privileges for reboot
+                pkexec systemctl reboot 2>/dev/null || \
+                pkexec reboot 2>/dev/null || \
+                pkexec shutdown -r now 2>/dev/null || {
+                    echo "❌ Error: Could not restart the system automatically."
+                    echo "   Please restart manually."
+                    echo ""
+                    echo "✅ Boot has been configured for Windows on next restart."
+                    show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
+                    exit 1
+                }
+            else
+                # Fallback: try sudo with password prompt
+                sudo systemctl reboot 2>/dev/null || \
+                sudo reboot 2>/dev/null || \
+                sudo shutdown -r now 2>/dev/null || {
+                    echo "❌ Error: Could not restart the system automatically."
+                    echo "   Please restart manually."
+                    echo ""
+                    echo "✅ Boot has been configured for Windows on next restart."
+                    show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
+                    exit 1
+                }
+            fi
+        fi
+    else
+        # We're already root, try reboot commands directly
+        # Log to syslog for debugging when run from launcher
+        if command -v logger &> /dev/null; then
+            logger -t "restart-on-windows" "Attempting to reboot system (running as root, EUID=$EUID)"
+        fi
+        
+        if ! systemctl reboot 2>&1; then
             echo ""
-            echo "✅ Boot has been configured for Windows on next restart."
-            exit 1
+            echo "⚠️  systemctl reboot failed. Trying alternative method..."
+            if command -v logger &> /dev/null; then
+                logger -t "restart-on-windows" "systemctl reboot failed, trying alternatives"
+            fi
+            
+            # Try alternative method
+            if command -v reboot &> /dev/null; then
+                echo "   Using 'reboot' command..."
+                if command -v logger &> /dev/null; then
+                    logger -t "restart-on-windows" "Using 'reboot' command"
+                fi
+                reboot
+            elif command -v shutdown &> /dev/null; then
+                echo "   Using 'shutdown -r now' command..."
+                if command -v logger &> /dev/null; then
+                    logger -t "restart-on-windows" "Using 'shutdown -r now' command"
+                fi
+                shutdown -r now
+            else
+                echo "❌ Error: Could not restart the system automatically."
+                echo "   Please restart manually."
+                echo ""
+                echo "✅ Boot has been configured for Windows on next restart."
+                if command -v logger &> /dev/null; then
+                    logger -t "restart-on-windows" "ERROR: Could not restart system - all methods failed"
+                fi
+                show_notification "Restart on Windows" "Boot configured, but could not restart automatically. Please restart manually." "critical"
+                exit 1
+            fi
+        else
+            if command -v logger &> /dev/null; then
+                logger -t "restart-on-windows" "systemctl reboot succeeded"
+            fi
         fi
     fi
 fi
