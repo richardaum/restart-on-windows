@@ -37,85 +37,6 @@ test_curl_not_installed() {
     cleanup_test_env
 }
 
-# Test: version detection - latest
-test_version_latest() {
-    echo "Testing version detection - latest..."
-    
-    setup_test_env
-    
-    # Mock curl for GitHub API
-    cat > "$MOCK_BIN_DIR/curl" << 'EOF'
-#!/bin/bash
-if [[ "$@" == *"api.github.com"*"releases/latest"* ]]; then
-    echo '{"tag_name": "v1.0.0"}'
-else
-    echo "Mock curl"
-fi
-EOF
-    chmod +x "$MOCK_BIN_DIR/curl"
-    
-    # Test version parsing logic
-    output=$(bash -c '
-        VERSION="latest"
-        if [ "$VERSION" = "latest" ]; then
-            LATEST_TAG=$(echo "{\"tag_name\": \"v1.0.0\"}" | grep -oP "\"tag_name\": \"\\K[^\"]*" | head -1)
-            if [ -n "$LATEST_TAG" ]; then
-                echo "$LATEST_TAG"
-            else
-                echo "main"
-            fi
-        fi
-    ')
-    
-    assert_contains "$output" "v1.0.0" "Should detect latest tag"
-    
-    cleanup_test_env
-}
-
-# Test: version detection - specific version
-test_version_specific() {
-    echo "Testing version detection - specific version..."
-    
-    setup_test_env
-    
-    output=$(bash -c '
-        VERSION="v1.0.0"
-        if [ "$VERSION" = "latest" ]; then
-            echo "latest"
-        elif [ "$VERSION" = "main" ]; then
-            echo "main"
-        else
-            echo "$VERSION"
-        fi
-    ')
-    
-    assert_equals "v1.0.0" "$output" "Should use specific version"
-    
-    cleanup_test_env
-}
-
-# Test: version detection - main branch
-test_version_main() {
-    echo "Testing version detection - main branch..."
-    
-    setup_test_env
-    
-    output=$(bash -c '
-        VERSION="main"
-        if [ "$VERSION" = "latest" ]; then
-            echo "latest"
-        elif [ "$VERSION" = "main" ]; then
-            echo "main"
-        else
-            echo "$VERSION"
-        fi
-    ')
-    
-    assert_equals "main" "$output" "Should use main branch"
-    
-    cleanup_test_env
-}
-
 # Test: directory creation
 test_directory_creation() {
     echo "Testing directory creation..."
@@ -172,6 +93,68 @@ EOF
     cleanup_test_env
 }
 
+# Test: always uses main branch
+test_always_uses_main() {
+    echo "Testing that script always uses main branch..."
+    
+    setup_test_env
+    
+    # Test that BRANCH_OR_TAG is always "main"
+    output=$(bash -c '
+        BRANCH_OR_TAG="main"
+        echo "$BRANCH_OR_TAG"
+    ')
+    
+    assert_equals "main" "$output" "Should always use main branch"
+    
+    cleanup_test_env
+}
+
+# Test: base URL construction
+test_base_url_construction() {
+    echo "Testing base URL construction..."
+    
+    setup_test_env
+    
+    # Test URL construction logic
+    output=$(bash -c '
+        REPO_URL="https://raw.githubusercontent.com/richardaum/restart-on-windows"
+        BRANCH_OR_TAG="main"
+        BASE_URL="${REPO_URL}/${BRANCH_OR_TAG}"
+        echo "$BASE_URL"
+    ')
+    
+    expected="https://raw.githubusercontent.com/richardaum/restart-on-windows/main"
+    assert_equals "$expected" "$output" "Should construct correct base URL with main branch"
+    
+    cleanup_test_env
+}
+
+# Test: version file creation
+test_version_file_creation() {
+    echo "Testing version file creation..."
+    
+    setup_test_env
+    
+    TEST_INSTALL_DIR="$MOCK_TMP_DIR/test_install"
+    mkdir -p "$TEST_INSTALL_DIR"
+    
+    # Simulate version file creation
+    BRANCH_OR_TAG="main"
+    echo "$BRANCH_OR_TAG" > "${TEST_INSTALL_DIR}/.version"
+    echo "$(date -Iseconds)" >> "${TEST_INSTALL_DIR}/.version"
+    
+    if [ -f "${TEST_INSTALL_DIR}/.version" ]; then
+        first_line=$(head -n 1 "${TEST_INSTALL_DIR}/.version")
+        assert_equals "main" "$first_line" "Version file should contain main"
+    else
+        assert_equals "1" "0" "Version file should be created"
+    fi
+    
+    rm -rf "$TEST_INSTALL_DIR"
+    cleanup_test_env
+}
+
 # Run all tests
 run_tests() {
     echo "=========================================="
@@ -180,11 +163,11 @@ run_tests() {
     echo ""
     
     test_curl_not_installed
-    test_version_latest
-    test_version_specific
-    test_version_main
     test_directory_creation
     test_file_download
+    test_always_uses_main
+    test_base_url_construction
+    test_version_file_creation
     
     print_test_summary
 }

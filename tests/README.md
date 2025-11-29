@@ -90,7 +90,6 @@ Available assertion functions:
 ### install.sh
 
 - curl availability check
-- Version detection (latest, specific version, main branch)
 - Directory creation
 - File download simulation
 

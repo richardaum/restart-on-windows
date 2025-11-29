@@ -52,7 +52,6 @@ The tests use a custom framework (`src/test_helper.bash`) that:
 - Dependency checks (efibootmgr, curl)
 - Symbolic link creation
 - Sudo escalation logic
-- Version detection
 - File format validation
 
 For more details, see [`tests/README.md`](../tests/README.md).

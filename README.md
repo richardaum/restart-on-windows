@@ -4,7 +4,7 @@ Scripts to easily restart your system and boot into Windows on a dual-boot Pop!\
 
 ## Installation
 
-Install the latest stable version with one command:
+Install with one command:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash
@@ -18,7 +18,7 @@ wget -qO- https://raw.githubusercontent.com/richardaum/restart-on-windows/main/i
 
 This will automatically:
 
-- Download the latest stable release
+- Download files from the main branch
 - Install all necessary files to `~/.local/share/restart-on-windows`
 - Set up symbolic links in `~/.local/bin/`
 - Configure the desktop entry
@@ -52,7 +52,6 @@ For more detailed information, see:
 
 - **[Usage Guide](docs/usage.md)** - Detailed usage instructions and options
 - **[Manual Installation](docs/manual-installation.md)** - Manual installation steps
-- **[Alternative Installation](docs/alternative-installation.md)** - Install specific versions or development builds
 - **[Boot IDs Configuration](docs/boot-ids.md)** - Configure custom boot IDs
 - **[Testing](docs/testing.md)** - Information about the test suite
 
