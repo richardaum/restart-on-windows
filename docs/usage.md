@@ -8,7 +8,7 @@ Search for "Restart once on Windows" in your application launcher and click it.
 
 ### Basic Usage
 
-Restart into Windows temporarily (default - returns to Pop!_OS after restart):
+Restart into Windows temporarily (default - returns to Linux after restart):
 
 ```bash
 ~/.local/bin/restart-on-windows.sh
@@ -39,7 +39,7 @@ Restart into Windows temporarily (default - returns to Pop!_OS after restart):
 ### Default (Temporary)
 
 - Configures Windows for next boot only
-- After restarting, system returns to Pop!_OS as default
+- After restarting, system returns to Linux as default
 - Safe option - doesn't permanently change boot order
 
 ### Permanent
@@ -51,17 +51,19 @@ Restart into Windows temporarily (default - returns to Pop!_OS after restart):
 ## Examples
 
 **Temporary boot (recommended for most users)**:
+
 ```bash
 ~/.local/bin/restart-on-windows.sh
 ```
 
 **Permanent boot order change**:
+
 ```bash
 ~/.local/bin/restart-on-windows.sh --permanent
 ```
 
 **Configure boot but restart manually later**:
+
 ```bash
 ~/.local/bin/restart-on-windows.sh --no-reboot
 ```
-

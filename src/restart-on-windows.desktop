@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Restart once on Windows
-Comment=Restart and boot into Windows once (returns to Pop!_OS next time)
+Comment=Restart and boot into Windows once (returns to Linux next time)
 Exec=/bin/bash -c "~/.local/bin/restart-on-windows.sh"
 Icon=system-reboot
 Terminal=false

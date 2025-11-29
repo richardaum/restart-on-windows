@@ -1,6 +1,8 @@
 # Restart on Windows
 
-Scripts to easily restart your system and boot into Windows on a dual-boot Pop!\_OS setup.
+Scripts to easily restart your system and boot into Windows on a dual-boot Linux/Windows setup.
+
+Works with various Linux distributions including Pop!\_OS, Ubuntu, Debian, Fedora, Arch, openSUSE, Mint, and others.
 
 ## Installation
 
@@ -33,7 +35,7 @@ Search for "Restart once on Windows" in your application launcher.
 ### From Terminal
 
 ```bash
-# Restart into Windows (temporary - returns to Pop!_OS after restart)
+# Restart into Windows (temporary - returns to Linux after restart)
 ~/.local/bin/restart-on-windows.sh
 
 # Show help
@@ -42,9 +44,22 @@ Search for "Restart once on Windows" in your application launcher.
 
 ## Requirements
 
-- `efibootmgr` package (usually pre-installed on Pop!\_OS)
-- UEFI system with dual-boot Windows/Pop!\_OS
+- `efibootmgr` package (install with: `sudo apt install efibootmgr` or your distro's package manager)
+- UEFI system with dual-boot Windows/Linux
 - Sudo access (only needed once for setup)
+
+## Supported Distributions
+
+The script automatically detects boot entries for various Linux distributions:
+
+- Pop!\_OS
+- Ubuntu
+- Debian
+- Fedora
+- Arch Linux
+- openSUSE
+- Linux Mint
+- And other Linux distributions with UEFI boot entries
 
 ## Documentation
 
@@ -72,4 +87,3 @@ Quick start:
 - `quick-start.sh` - Automated installation script
 - `install.sh` - One-command installation script
 - `scripts/install-hooks.sh` - Script to install git hooks for development
-
