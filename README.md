@@ -2,12 +2,33 @@
 
 Scripts to easily restart your system and boot into Windows on a dual-boot Pop!\_OS setup.
 
+## Installation
+
+Install with one command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash
+```
+
+Or using wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash
+```
+
+This will:
+
+- Download all necessary files to `~/.local/share/restart-on-windows`
+- Run the automated installation script
+- Set up everything automatically
+
 ## Files
 
 - `restart-on-windows.sh` - Main script that configures boot and restarts into Windows
 - `setup-restart-on-windows-sudo.sh` - Setup script to configure sudoers (run once)
 - `restart-on-windows.desktop` - Desktop entry for the launcher
 - `quick-start.sh` - Automated installation script
+- `install.sh` - One-command installation script
 
 ## Quick Start
 
