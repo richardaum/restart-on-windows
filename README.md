@@ -4,7 +4,7 @@ Scripts to easily restart your system and boot into Windows on a dual-boot Pop!\
 
 ## Installation
 
-Install with one command:
+Install the latest stable version with one command:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash
@@ -16,11 +16,13 @@ Or using wget:
 wget -qO- https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash
 ```
 
-This will:
+This will automatically:
 
-- Download all necessary files to `~/.local/share/restart-on-windows`
-- Run the automated installation script
-- Set up everything automatically
+- Download the latest stable release
+- Install all necessary files to `~/.local/share/restart-on-windows`
+- Set up symbolic links in `~/.local/bin/`
+- Configure the desktop entry
+- Set up sudoers (you'll be prompted for your password once)
 
 ## Files
 
@@ -113,3 +115,21 @@ The script uses these boot IDs (from `efibootmgr`):
 - `0004` - Pop!\_OS 22.04 LTS
 
 If your boot IDs are different, edit the script and update `WINDOWS_BOOT_ID` and `POPOS_BOOT_ID` variables.
+
+## Alternative Installation Options
+
+### Install a Specific Version
+
+To install a specific release version (tag):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash -s v1.0.0
+```
+
+### Install Development Version
+
+To install from the main branch (latest development code):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/richardaum/restart-on-windows/main/install.sh | bash -s main
+```
